@@ -19,7 +19,6 @@ dialogue <- tuesdata$stranger_things_all_dialogue
 #   plain = '/Users/alvaro/Library/Fonts/VANTHO1H.TTF'
 # )
 # systemfonts::reset_font_cache()
-
 # fonts <- systemfonts::registry_fonts()
 # fonts <- systemfonts::system_fonts()
 # fonts %>% filter(str_detect(family, '[Vv]an')) %>% View() pull(family)
@@ -50,7 +49,10 @@ character_names <- paste0(
   "]"
 )
 top_dirstage <- stage_direction_freq[!(names(stage_direction_freq) %in% character_names)] %>% head(9)
-top_dirstage_pat <- str_replace_all(names(top_dirstage), c("\\[" = "\\\\[", "\\]" = "\\\\]")) %>% paste(collapse = "|")
+top_dirstage_pat <- str_replace_all(
+  names(top_dirstage), 
+  c("\\[" = "\\\\[", "\\]" = "\\\\]")
+) %>% paste(collapse = "|")
 
 # How often does each stage direction appear? -----------------------------
 stage_dir_per_episode <- (
@@ -75,16 +77,17 @@ stage_dir_per_episode <- (
   %>% count(season, episode, stagedir_complete)
 )
 
-stage_dir_per_episode# %>% count(season, episode, stagedir_complete) %>% print(n = 100)
 
 
 # Enrich episode info -------------------------------------------------------------
-
 episode_n <- episodes %>% select(season, episode) %>% mutate(episode_n = row_number())
-stage_dir_per_episode <- left_join(stage_dir_per_episode, episode_n, by = c("season", "episode"))
+stage_dir_per_episode <- left_join(
+  stage_dir_per_episode, 
+  episode_n, 
+  by = c("season", "episode")
+)
 
 # Theme elements ----------------------------------------------------------
-# gray20 = #202020
 red_pal <- scales::brewer_pal(palette = 'Reds')(5)[2:5]
 
 p_top_stagedir <- (
@@ -99,7 +102,7 @@ p_top_stagedir <- (
          y = "# Times stage direction appears in script")
   + theme(
       plot.background = element_rect(fill = 'black'),
-      panel.background = element_rect(fill = 'black'), #color = red_pal[[4]], size = 3,
+      panel.background = element_rect(fill = 'black'),
       panel.spacing = unit(1, 'lines'),
       panel.grid = element_line(color = '#999999'),
       panel.grid.minor.x = element_blank(),
@@ -117,55 +120,42 @@ p_top_stagedir <- (
     )
 )
 
-# Assemble plot with logo? ------------------------------------------------
-{
-  logo <- png::readPNG(here::here('misc','Stranger_Things_logo.png'))
-  logo_grob <- grid::rasterGrob(logo)
-  
-  text_col <- 'white'
-  
-  title_grob <- grid::textGrob(
-    "[Screams in tidyverse]",
-    gp = grid::gpar(fontfamily = "VI Van Tho Hoa", 
-                    col = text_col, fill = text_col, fontsize = 24)
-  )
-  subtitle_text <- str_glue(
-    "We need proper subtitles to understand whether someone is gasping, <br>",
-    "screaming or, you know, in Russian. Here are the 9 annotations that <br>",
-    "appear most often: from <span style='color:{red_pal[[1]]}'>Season 1</span>",
-    " to <span style='color:{red_pal[[4]]}'>Season 4</span>",
-  )
-  subtitle_grob <- gridtext::richtext_grob(
-    subtitle_text,
-    gp = grid::gpar(fontfamily = "VI Van Tho", 
-                    col = text_col, fill = text_col, fontsize = 12)
-  )
-  
-  p_stranger <- (
-    (
-      wrap_plots(wrap_plots(title_grob, subtitle_grob, ncol = 1),
-                 logo_grob, 
-                 nrow = 1) / 
-        p_top_stagedir
-    ) 
-    + plot_layout(ncol = 1, heights = c(1, 4)) 
-    # + plot_annotation(title = "[Screams in tidyverse]")
-    & theme(
-        plot.background = element_rect(
-          fill = 'black', color = NULL, linetype = 'blank'
-        ),
-      )
+# Assemble plot with logo ------------------------------------------------
+logo <- png::readPNG(here::here('misc','Stranger_Things_logo.png'))
+logo_grob <- grid::rasterGrob(logo)
+
+text_col <- 'white'
+
+title_grob <- grid::textGrob(
+  "[Screams in tidyverse]",
+  gp = grid::gpar(fontfamily = "VI Van Tho Hoa", 
+                  col = text_col, fill = text_col, fontsize = 24)
+)
+subtitle_text <- str_glue(
+  "We need proper subtitles to understand whether someone is gasping, <br>",
+  "screaming or, you know, in Russian. Here are the 9 annotations that <br>",
+  "appear most often: from <span style='color:{red_pal[[1]]}'>Season 1</span>",
+  " to <span style='color:{red_pal[[4]]}'>Season 4</span>",
+)
+subtitle_grob <- gridtext::richtext_grob(
+  subtitle_text,
+  gp = grid::gpar(fontfamily = "VI Van Tho", 
+                  col = text_col, fill = text_col, fontsize = 12)
+)
+
+p_stranger <- (
+  (
+    wrap_plots(wrap_plots(title_grob, subtitle_grob, ncol = 1),
+               logo_grob, 
+               nrow = 1) / 
+      p_top_stagedir
+  ) 
+  + plot_layout(ncol = 1, heights = c(1, 4)) 
+  & theme(
+      plot.background = element_rect(
+        fill = 'black', color = NULL, linetype = 'blank'
+      ),
     )
-  ggsave('plots/2022-42-stranger-things.png', plot = p_stranger,
-         width = 4, height = 3, scale = 2.5)
-}
-
-# ggsave(
-#   "tmp.png",
-#   plot = wrap_plots(title_grob, subtitle_grob, ncol = 1),
-#   bg = 'black',
-#   width = 4, height = 6
-#   )
-
-# TidyTuesday graph: A three by three grid of line graphs that show the number of occurrences of stage directions throughout the episodes of Stranger Things. Stage directions are descriptions of non-verbal elements like chuckles, gasps, grunts, and so on. Sho
-# Chuckles, gasps, grunts, in russian, panting, scoffs, screaming, sighs and stammers. Grunts and chuckles have an increasing trend. Sighs and stammers have a decreasing trend. In Russian only appears since season 3. The rest remain constant
+  )
+ggsave('plots/2022-42-stranger-things.png', plot = p_stranger,
+       width = 4, height = 3, scale = 2.5)
