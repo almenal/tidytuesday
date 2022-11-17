@@ -27,7 +27,7 @@ Submissions by Alvaro Mendoza
         </td>   
         <td style="text-align:center"><img 
           src="plots/2022-45-radio-stations.png"
-          width=55%
+          width=65%
           height=100% 
           align="center">
         </td>     
